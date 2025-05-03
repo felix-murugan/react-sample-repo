@@ -6,10 +6,9 @@ import Useeffect from './Component/State/Useeffect'; // Import Useeffect compone
 function App() {
   return (
     <div>
-      {/* Uncomment these components to use them */}
-      {/* <Carts /> */}
-      {/* <Useeffect /> */}
-      <Useref /> {/* This component is being used */}
+      <Carts /> {/* Uncomment to use */}
+      <Useeffect /> {/* Uncomment to use */}
+      <Useref /> {/* This component is already being used */}
     </div>
   );
 }
