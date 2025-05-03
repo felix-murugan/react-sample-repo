@@ -47,6 +47,9 @@ jobs:
 
       - name: Build React App
         run: npm run build
+        
+      - name: Next Step (e.g., Upload or Deploy)
+        run: echo "Build completed! Running next task..."
 
   codeql-analysis:
     name: CodeQL Static Analysis
