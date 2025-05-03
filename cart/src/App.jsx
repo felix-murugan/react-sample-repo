@@ -1,15 +1,15 @@
-import './App.css'; // CSS for the App component
-import Carts from './Component/State/Carts'; // Import the Carts component
-import Useref from './Component/State/Useref'; // Import the Useref component
-import Useeffect from './Component/State/Useeffect'; // Import the Useeffect component
+import './App.css'; // Import CSS for styling
+import Carts from './Component/State/Carts'; // Import Carts component
+import Useref from './Component/State/Useref'; // Import Useref component
+import Useeffect from './Component/State/Useeffect'; // Import Useeffect component
 
 function App() {
   return (
     <div>
-      {/* Uncomment the components below to use them */}
+      {/* Uncomment these components to use them */}
       {/* <Carts /> */}
       {/* <Useeffect /> */}
-      <Useref /> {/* This component is currently being used */}
+      <Useref /> {/* This component is being used */}
     </div>
   );
 }
