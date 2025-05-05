@@ -50,13 +50,11 @@ jobs:
           echo "Checking if useeffect.css exists..."
           ls ./src/Component/State/useeffect.css || echo "useeffect.css not found"
 
-      - name: Run Vite Development Server
+      - name: Run Vite Development Server and Capture Logs
         run: |
           echo "Starting Vite dev server..."
-          CI=true npm run dev &
-          sleep 10  # Wait for Vite to start
-          echo "Vite server logs:"
-          tail -f /dev/null  # Keeps the job running to capture logs (optional)
+          CI=true npm run dev  # Runs Vite dev server in the foreground
+          # The command will log to the GitHub Actions console
 
       - name: Build React App
         run: |
