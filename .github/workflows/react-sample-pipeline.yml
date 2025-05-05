@@ -7,12 +7,14 @@ on:
     branches: [development]
 
 permissions:
-  contents: read
+  contents: write
+  pages: write
+  id-token: write
   security-events: write
 
 jobs:
   build:
-    name: Build and Test React App
+    name: Build and Deploy React App
     runs-on: ubuntu-latest
 
     defaults:
@@ -51,21 +53,20 @@ jobs:
           ls ./src/Component/State/useeffect.css || echo "useeffect.css not found"
 
       - name: Build React App
-        run: |
-          echo "Starting build process..."
-          npm run build -- --debug  # Added debug flag to gather more info
+        run: npm run build
 
-      - name: Next Step (e.g., Upload or Deploy)
-        run: echo "Build completed! Running next task..."
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/development'
+        env:
+          CI: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm install -g gh-pages
+          npm run deploy
 
   codeql-analysis:
     name: CodeQL Static Analysis
     runs-on: ubuntu-latest
-
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
 
     strategy:
       fail-fast: false
