@@ -59,7 +59,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: react-build
-          path: ./cart/build  
+          path: react-build  
 
   codeql-analysis:
     name: CodeQL Static Analysis
@@ -104,8 +104,7 @@ jobs:
       - name: Check for existing latest version hash
         id: skip-check
         run: |
-          cd react-artifact-repo
-          latest_file=$(ls react-build-v*.zip 2>/dev/null | sort -V | tail -n 1)
+          cd react-artifact-repo/frontend-artifact || mkdir -p react-artifact-repo/frontend-artifact
           if [[ -f "$latest_file" ]]; then
             unzip -p "$latest_file" | sha256sum | cut -d' ' -f1 > ../latest_hash.txt
           else
@@ -120,7 +119,6 @@ jobs:
           
       - name: Generate current artifact hash
         run: |
-          cd react-build
           zip -r react-temp.zip .
           unzip -p react-temp.zip | sha256sum | cut -d' ' -f1 > ../current_hash.txt
 
