@@ -1,4 +1,4 @@
-name: React CI/CD - Development
+name: React CI & Security Pipeline
 
 on:
   push:
@@ -11,49 +11,36 @@ permissions:
   security-events: write
 
 jobs:
-  build:
-    name: Build and Test React App
+  react-quality-security:
+    name: React Code Quality & Security
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: ./cart
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      - name: Cache Node modules
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-modules-
-
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Run Lint (optional)
-        run: npm run lint || true
+      - name: Run Prettier (Check Formatting)
+        run: npm run format:check
 
-      - name: Run Tests (optional)
-        run: npm test --if-present
+      - name: Run ESLint (Linting)
+        run: npm run lint
 
-      - name: Check if `useeffect.css` exists
-        run: |
-          echo "Checking if useeffect.css exists..."
-          ls ./src/Component/State/useeffect.css || echo "useeffect.css not found"
+      - name: Run npm audit (Vulnerability Scan)
+        run: npm audit --audit-level=moderate
+
+      - name: Run tests
+        run: npm test -- --watchAll=false
 
       - name: Build React App
-        run: |
-          echo "Starting build process..."
-          npm run build -- --debug  # Added debug flag to gather more info
+        run: npm run build
 
   codeql-analysis:
     name: CodeQL Static Analysis
