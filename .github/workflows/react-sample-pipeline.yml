@@ -54,6 +54,13 @@ jobs:
       - name: Build React App
         run: npm run build
 
+      - name: Upload React build artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: react-build
+          path: ./cart/build  
+
   codeql-analysis:
     name: CodeQL Static Analysis
     runs-on: ubuntu-latest
@@ -109,7 +116,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: react-build
-          path: ./cart/build
+          path: react-build
           
       - name: Generate current artifact hash
         run: |
