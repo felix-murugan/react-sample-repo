@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   build:
-    name: Build, Test, Artifact & Package
+    name: Build and Test React App , Artifact & Package
     runs-on: ubuntu-latest
 
     defaults:
@@ -39,39 +39,28 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Auto-format code
-        run: npm run format
-
-      - name: Run npm audit fix (Vulnerability Auto-fix)
-        run: npm audit fix
-
       - name: Run Lint (optional)
         run: npm run lint || true
 
       - name: Run Tests (optional)
         run: npm test --if-present
 
-      - name: Build React App
-        run: npm run build
-
-      - name: Debug build output
+      - name: Check if `useeffect.css` exists
         run: |
-          echo "Listing contents of ./cart directory:"
-          ls -l .
-          echo "Listing contents of ./cart/build directory:"
-          ls -l build || echo "⚠️ Build directory not found!"
+          echo "Checking if useeffect.css exists..."
+          ls ./src/Component/State/useeffect.css || echo "useeffect.css not found"
 
-      - name: Upload React build artifact
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: react-build
-          path: ./cart/build
+      - name: Build React App
+        run: |
+          echo "Starting build process..."
+          npm run build -- --debug  # Added debug flag to gather more info
+
+      - name: Next Step (e.g., Upload or Deploy)
+        run: echo "Build completed! Running next task..."
 
   codeql-analysis:
     name: CodeQL Static Analysis
     runs-on: ubuntu-latest
-
     permissions:
       actions: read
       contents: read
@@ -95,13 +84,11 @@ jobs:
         uses: github/codeql-action/analyze@v3
 
   zip-and-push-react-artifact:
-    name: Zip and Push React Artifact
-    needs: [build, codeql-analysis]
+    needs: build
     runs-on: ubuntu-latest
     if: success()
-
     steps:
-      - name: Checkout target repo
+      - name: Checkout target repo 
         uses: actions/checkout@v3
         with:
           repository: felix-murugan/react-artifact-repo
@@ -109,32 +96,28 @@ jobs:
           token: ${{ secrets.My_GITHUB_TOKEN }}
           path: react-artifact-repo
 
-      - name: Ensure artifact directory exists
-        run: mkdir -p react-artifact-repo/frontend-artifact
-
       - name: Check for existing latest version hash
         id: skip-check
         run: |
-          cd react-artifact-repo/frontend-artifact
-          latest_file=$(ls -t react-build-v*.zip 2>/dev/null | head -n1)
+          cd react-artifact-repo/frontend-artifact || mkdir -p react-artifact-repo/frontend-artifact
+          latest_file=$(ls frontend-artifact-v*.zip 2>/dev/null | sort -V | tail -n 1)
           if [[ -f "$latest_file" ]]; then
-            unzip -p "$latest_file" | sha256sum | cut -d' ' -f1 > ../../latest_hash.txt
+            unzip -p "$latest_file" | sha256sum | cut -d' ' -f1 > ../latest_hash.txt
           else
-            echo "no_previous_hash" > ../../latest_hash.txt
+            echo "no_previous_hash" > ../latest_hash.txt
           fi
 
-      - name: Download React build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: react-build
-          path: react-build
+      - name: Build React application
+        run: |
+          cd react-app
+          npm install
+          npm run build
 
       - name: Generate current artifact hash
         run: |
-          cd react-build
-          zip -r ../react-temp.zip .
-          cd ..
-          unzip -p react-temp.zip | sha256sum | cut -d' ' -f1 > current_hash.txt
+          cd react-app/build
+          zip -r react-app-temp.zip .
+          unzip -p react-app-temp.zip | sha256sum | cut -d' ' -f1 > ../current_hash.txt
 
       - name: Check for changes
         id: hash-diff
@@ -143,17 +126,18 @@ jobs:
             echo "no_change=true" >> $GITHUB_OUTPUT
           else
             echo "no_change=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Skip if no changes
         if: steps.hash-diff.outputs.no_change == 'true'
-        run: echo "No changes in React build — skipping commit and push."
+        run: echo "No changes in React app — skipping commit and push."
 
       - name: Determine next version
         if: steps.hash-diff.outputs.no_change == 'false'
         id: version
         run: |
           cd react-artifact-repo/frontend-artifact
-          count=$(ls react-build-v*.zip 2>/dev/null | wc -l)
+          count=$(ls frontend-artifact-v*.zip 2>/dev/null | wc -l)
           next_version=$((count + 1))
           echo "version=v$next_version" >> $GITHUB_OUTPUT
 
@@ -161,14 +145,14 @@ jobs:
         if: steps.hash-diff.outputs.no_change == 'false'
         run: |
           VERSION=${{ steps.version.outputs.version }}
-          mv react-temp.zip react-artifact-repo/frontend-artifact/react-build-${VERSION}.zip
+          mv react-app/build/react-app-temp.zip react-artifact-repo/frontend-artifact/frontend-artifact-${VERSION}.zip
 
-      - name: Commit and push ZIP to development branch
+      - name: Commit and push ZIP to target repository
         if: steps.hash-diff.outputs.no_change == 'false'
         run: |
-          cd react-artifact-repo
+          cd artifact-repo
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add frontend-artifact/react-build-*.zip
-          git commit -m "Add React build ZIP version ${{ steps.version.outputs.version }}"
+          git add react-app-*.zip
+          git commit -m "Add React ZIP version ${{ steps.version.outputs.version }}"
           git push origin main
