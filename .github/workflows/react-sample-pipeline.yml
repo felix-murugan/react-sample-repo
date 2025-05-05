@@ -116,8 +116,8 @@ jobs:
         with:
           name: react-build
           path: react-build
-          repository: felix-murugan/react-sample-repo
-          run-id: 14835171930
+          repository: felix-murugan/react-artifact-repo/frontend-artifact
+          # run-id: 14835171930
           
       - name: Generate current artifact hash
         run: |
@@ -140,7 +140,7 @@ jobs:
         if: steps.hash-diff.outputs.no_change == 'false'
         id: version
         run: |
-          cd react-artifact-repo
+          cd react-artifact-repo/frontend-artifact
           count=$(ls react-build-v*.zip 2>/dev/null | wc -l)
           next_version=$((count + 1))
           echo "version=v$next_version" >> $GITHUB_OUTPUT
