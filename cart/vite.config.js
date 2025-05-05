@@ -1,12 +1,12 @@
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: '0.0.0.0',
-    port: 5173,
-    strictPort: true,
-    open: false, // Don't open the browser automatically in CI
-  },
-  build: {
-    sourcemap: true, // Enable sourcemaps in build (useful for debugging)
+    host: '0.0.0.0', // Expose Vite to be accessible externally
+    port: 5173, // Optionally set the port (5173 is default)
+    strictPort: true, // Fail if the port is already in use
   },
 })
