@@ -59,7 +59,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: react-build
-          path: react-build  
+          path: ./cart/build
 
   codeql-analysis:
     name: CodeQL Static Analysis
