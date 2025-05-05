@@ -53,8 +53,8 @@ jobs:
       - name: Run Vite Development Server and Capture Logs
         run: |
           echo "Starting Vite dev server..."
-          CI=true npm run dev  # Runs Vite dev server in the foreground
-          # The command will log to the GitHub Actions console
+          CI=true npm run dev | tee vite-output.log  # Use tee to capture the output
+          tail -f vite-output.log  # This keeps the job alive and outputs the log
 
       - name: Build React App
         run: |
