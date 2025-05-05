@@ -45,8 +45,8 @@ jobs:
         run: npm run format
 
 
-      - name: Run npm audit (Vulnerability Scan)
-        run: npm audit --audit-level=moderate
+      - name: Run npm audit fix (Vulnerability Auto-fix)
+        run: npm audit fix
 
       - name: Run Lint (optional)
         run: npm run lint || true
