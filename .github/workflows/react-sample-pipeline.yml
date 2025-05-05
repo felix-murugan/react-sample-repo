@@ -36,8 +36,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-modules-
 
-      - name: Install dependencies and build
-        run:
+      - name: Install dependencies and Build React app
+        run: |
+            cd react-app
             npm install
             npm run build
 
