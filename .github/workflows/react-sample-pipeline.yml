@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   build:
-    name: Build , Test , Artifact & Package
+    name: Build, Test, Artifact & Package
     runs-on: ubuntu-latest
 
     defaults:
@@ -55,7 +55,7 @@ jobs:
         run: npm run build
 
       - name: Upload React build
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: react-build
           path: ./cart/build
@@ -93,7 +93,7 @@ jobs:
 
     steps:
       - name: Checkout target repo
-        uses: actions/upload-artifact@v2
+        uses: actions/checkout@v3
         with:
           repository: felix-murugan/react-artifact-repo
           ref: main
@@ -112,7 +112,7 @@ jobs:
           fi
 
       - name: Download React build artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v2
         with:
           name: react-build
           path: react-build
