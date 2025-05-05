@@ -88,6 +88,7 @@ jobs:
         uses: github/codeql-action/analyze@v3
 
   zip-and-push-react-artifact:
+    name: Zip and Push React Artifact
     needs: [build, codeql-analysis]
     runs-on: ubuntu-latest
     if: success()
@@ -101,14 +102,18 @@ jobs:
           token: ${{ secrets.My_GITHUB_TOKEN }}
           path: react-artifact-repo
 
+      - name: Ensure artifact directory exists
+        run: mkdir -p react-artifact-repo/frontend-artifact
+
       - name: Check for existing latest version hash
         id: skip-check
         run: |
-          cd react-artifact-repo/frontend-artifact || mkdir -p react-artifact-repo/frontend-artifact
+          cd react-artifact-repo/frontend-artifact
+          latest_file=$(ls -t react-build-v*.zip 2>/dev/null | head -n1)
           if [[ -f "$latest_file" ]]; then
-            unzip -p "$latest_file" | sha256sum | cut -d' ' -f1 > ../latest_hash.txt
+            unzip -p "$latest_file" | sha256sum | cut -d' ' -f1 > ../../latest_hash.txt
           else
-            echo "no_previous_hash" > ../latest_hash.txt
+            echo "no_previous_hash" > ../../latest_hash.txt
           fi
 
       - name: Download React build artifact
@@ -116,13 +121,13 @@ jobs:
         with:
           name: react-build
           path: react-build
-          repository: felix-murugan/react-artifact-repo/frontend-artifact
-          # run-id: 14835171930
-          
+
       - name: Generate current artifact hash
         run: |
-          zip -r react-temp.zip .
-          unzip -p react-temp.zip | sha256sum | cut -d' ' -f1 > ../current_hash.txt
+          cd react-build
+          zip -r ../react-temp.zip .
+          cd ..
+          unzip -p react-temp.zip | sha256sum | cut -d' ' -f1 > current_hash.txt
 
       - name: Check for changes
         id: hash-diff
@@ -149,7 +154,7 @@ jobs:
         if: steps.hash-diff.outputs.no_change == 'false'
         run: |
           VERSION=${{ steps.version.outputs.version }}
-          mv react-build/react-temp.zip react-artifact-repo/react-build-${VERSION}.zip
+          mv react-temp.zip react-artifact-repo/frontend-artifact/react-build-${VERSION}.zip
 
       - name: Commit and push ZIP to development branch
         if: steps.hash-diff.outputs.no_change == 'false'
@@ -157,6 +162,6 @@ jobs:
           cd react-artifact-repo
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add react-build-*.zip
+          git add frontend-artifact/react-build-*.zip
           git commit -m "Add React build ZIP version ${{ steps.version.outputs.version }}"
           git push origin main
