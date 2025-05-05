@@ -50,12 +50,16 @@ jobs:
           echo "Checking if useeffect.css exists..."
           ls ./src/Component/State/useeffect.css || echo "useeffect.css not found"
 
-      - name: Run Vite Development Server and Capture Logs
+      - name: Install ngrok
+        run: npm install -g ngrok  # Install ngrok
+
+      - name: Run Vite Development Server and Expose via ngrok
         run: |
           echo "Starting Vite dev server..."
-          CI=true npm run dev | tee vite-output.log  # Use tee to capture the output
-          tail -f vite-output.log  # This keeps the job alive and outputs the log
-
+          CI=true npm run dev &  # Run Vite in the background
+          sleep 5  # Wait for Vite to start
+          ngrok http 5173  # Expose Vite server via ngrok
+          
       - name: Build React App
         run: |
           echo "Starting build process..."
