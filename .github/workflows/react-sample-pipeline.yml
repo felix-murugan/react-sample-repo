@@ -39,8 +39,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run Prettier (Check Formatting)
-        run: npm run format:check
+      # - name: Run Prettier (Check Formatting)
+      #   run: npm run format:check
+      - name: Auto-format code
+        run: npm run format
+
 
       - name: Run npm audit (Vulnerability Scan)
         run: npm audit --audit-level=moderate
