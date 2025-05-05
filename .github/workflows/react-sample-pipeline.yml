@@ -55,9 +55,6 @@ jobs:
           echo "Starting build process..."
           npm run build -- --debug  # Added debug flag to gather more info
 
-      - name: Next Step (e.g., Upload or Deploy)
-        run: echo "Build completed! Running next task..."
-
   codeql-analysis:
     name: CodeQL Static Analysis
     runs-on: ubuntu-latest
