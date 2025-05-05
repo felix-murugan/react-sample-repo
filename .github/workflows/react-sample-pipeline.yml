@@ -93,10 +93,10 @@ jobs:
       - name: Checkout target repo
         uses: actions/checkout@v3
         with:
-          repository: felix-murugan/react-artifact-repo/frontend-artifact
+          repository: felix-murugan/react-artifact-repo
           ref: main
           token: ${{ secrets.My_GITHUB_TOKEN }}
-          path: Artefact_Storage
+          path: react-artifact-repo
   
       - name: Check for existing latest version hash
         id: skip-check
