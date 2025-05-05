@@ -39,10 +39,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-     
       - name: Auto-format code
         run: npm run format
-
 
       - name: Run npm audit fix (Vulnerability Auto-fix)
         run: npm audit fix
@@ -54,7 +52,13 @@ jobs:
         run: npm test --if-present
 
       - name: Build React App
-        run:  npm run build
+        run: npm run build
+
+      - name: Upload React build
+        uses: actions/upload-artifact@v3
+        with:
+          name: react-build
+          path: ./cart/build
 
   codeql-analysis:
     name: CodeQL Static Analysis
@@ -83,13 +87,11 @@ jobs:
         uses: github/codeql-action/analyze@v3
 
   zip-and-push-react-artifact:
+    needs: codeql-analysis
+    runs-on: ubuntu-latest
+    if: success()
 
-     needs: codeql-analysis
-     runs-on: ubuntu-latest
-     if: success()
-
-     steps:
-  
+    steps:
       - name: Checkout target repo
         uses: actions/checkout@v3
         with:
@@ -97,7 +99,7 @@ jobs:
           ref: main
           token: ${{ secrets.My_GITHUB_TOKEN }}
           path: react-artifact-repo
-  
+
       - name: Check for existing latest version hash
         id: skip-check
         run: |
@@ -108,19 +110,19 @@ jobs:
           else
             echo "no_previous_hash" > ../latest_hash.txt
           fi
-  
+
       - name: Download React build artifact
         uses: actions/download-artifact@v4
         with:
           name: react-build
           path: react-build
-  
+
       - name: Generate current artifact hash
         run: |
           cd react-build
           zip -r react-temp.zip .
           unzip -p react-temp.zip | sha256sum | cut -d' ' -f1 > ../current_hash.txt
-  
+
       - name: Check for changes
         id: hash-diff
         run: |
@@ -129,11 +131,11 @@ jobs:
           else
             echo "no_change=false" >> $GITHUB_OUTPUT
           fi
-  
+
       - name: Skip if no changes
         if: steps.hash-diff.outputs.no_change == 'true'
         run: echo "No changes in React build — skipping commit and push."
-  
+
       - name: Determine next version
         if: steps.hash-diff.outputs.no_change == 'false'
         id: version
@@ -142,13 +144,13 @@ jobs:
           count=$(ls react-build-v*.zip 2>/dev/null | wc -l)
           next_version=$((count + 1))
           echo "version=v$next_version" >> $GITHUB_OUTPUT
-  
+
       - name: Rename and move artifact
         if: steps.hash-diff.outputs.no_change == 'false'
         run: |
           VERSION=${{ steps.version.outputs.version }}
-          mv react-build/react-temp.zip Artefact_Storage/react-build-${VERSION}.zip
-  
+          mv react-build/react-temp.zip react-artifact-repo/react-build-${VERSION}.zip
+
       - name: Commit and push ZIP to development branch
         if: steps.hash-diff.outputs.no_change == 'false'
         run: |
@@ -158,7 +160,3 @@ jobs:
           git add react-build-*.zip
           git commit -m "Add React build ZIP version ${{ steps.version.outputs.version }}"
           git push origin main
-
-  
-
- 
