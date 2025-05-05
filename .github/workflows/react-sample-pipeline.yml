@@ -88,7 +88,7 @@ jobs:
         uses: github/codeql-action/analyze@v3
 
   zip-and-push-react-artifact:
-    needs: codeql-analysis
+    needs: [build, codeql-analysis]
     runs-on: ubuntu-latest
     if: success()
 
