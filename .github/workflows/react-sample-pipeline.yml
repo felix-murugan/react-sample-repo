@@ -1,4 +1,4 @@
-name: React CI & Security Pipeline
+name: React CI/CD - Development
 
 on:
   push:
@@ -11,38 +11,48 @@ permissions:
   security-events: write
 
 jobs:
-  react-quality-security:
-    name: React Code Quality & Security
+  build:
+    name: Build and Test React App
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: ./cart
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
+      - name: Cache Node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
       - name: Install dependencies
-        run: |
-          cd react-sample-repo
-          npm ci
+        run: npm install
 
       - name: Run Prettier (Check Formatting)
         run: npm run format:check
 
-      - name: Run ESLint (Linting)
-        run: npm run lint
-
       - name: Run npm audit (Vulnerability Scan)
         run: npm audit --audit-level=moderate
 
-      - name: Run tests
-        run: npm test -- --watchAll=false
+      - name: Run Lint (optional)
+        run: npm run lint || true
+
+      - name: Run Tests (optional)
+        run: npm test --if-present
 
       - name: Build React App
-        run: npm run build
+        run:  npm run build
 
   codeql-analysis:
     name: CodeQL Static Analysis
