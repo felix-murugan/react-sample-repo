@@ -25,7 +25,9 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          cd react-sample-repo
+          npm ci
 
       - name: Run Prettier (Check Formatting)
         run: npm run format:check
