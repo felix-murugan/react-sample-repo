@@ -20,11 +20,11 @@ jobs:
         working-directory: ./cart
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: '18'
 
@@ -36,8 +36,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-modules-
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install dependencies and build
+        run:
+            npm install
+            npm run build
 
       - name: Run Lint (optional)
         run: npm run lint || true
