@@ -1,165 +1,155 @@
 name: React CI/CD - Development
 
 on:
-push:
-  branches: [development]
-pull_request:
-  branches: [development]
+  push:
+    branches: [development]
+  pull_request:
+    branches: [development]
 
 permissions:
-contents: read
-security-events: write
-
-jobs:
-build:
-  name: Build , Test , Artifact & Package
-  runs-on: ubuntu-latest
-
-defaults:
-  run:
-    working-directory: ./cart
-
-steps:
-  - name: Checkout code
-    uses: actions/checkout@v3
-
-  - name: Set up Node.js
-    uses: actions/setup-node@v4
-    with:
-      node-version: '18'
-
-  - name: Cache Node modules
-    uses: actions/cache@v3
-    with:
-      path: ~/.npm
-      key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-      restore-keys: |
-        ${{ runner.os }}-node-modules-
-
-  - name: Install dependencies
-    run: npm install
-
- 
-  - name: Auto-format code
-    run: npm run format
-
-
-  - name: Run npm audit fix (Vulnerability Auto-fix)
-    run: npm audit fix
-
-  - name: Run Lint (optional)
-    run: npm run lint || true
-
-  - name: Run Tests (optional)
-    run: npm test --if-present
-
-  - name: Build React App
-    run:  npm run build
-```
-
-codeql-analysis:
-name: CodeQL Static Analysis
-runs-on: ubuntu-latest
-
-```
-permissions:
-  actions: read
   contents: read
   security-events: write
 
-strategy:
-  fail-fast: false
-  matrix:
-    language: [javascript]
+jobs:
+  build:
+    name: Build, Test, Artifact & Package
+    runs-on: ubuntu-latest
 
-steps:
-  - name: Checkout repository
-    uses: actions/checkout@v4
+    defaults:
+      run:
+        working-directory: ./cart
 
-  - name: Initialize CodeQL
-    uses: github/codeql-action/init@v3
-    with:
-      languages: ${{ matrix.language }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-  - name: Perform CodeQL Analysis
-    uses: github/codeql-action/analyze@v3
-```
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
-zip-and-push-react-artifact:
+      - name: Cache Node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
 
-```
- needs: codeql-analysis
- runs-on: ubuntu-latest
- if: success()
+      - name: Install dependencies
+        run: npm install
 
- steps:
+      - name: Auto-format code
+        run: npm run format
 
-  - name: Checkout target repo
-    uses: actions/checkout@v3
-    with:
-      repository: felix-murugan/react-artifact-repo
-      ref: main
-      token: ${{ secrets.My_GITHUB_TOKEN }}
-      path: react-artifact-repo
+      - name: Run npm audit fix (Vulnerability Auto-fix)
+        run: npm audit fix
 
-  - name: Check for existing latest version hash
-    id: skip-check
-    run: |
-      cd react-artifact-repo
-      latest_file=$(ls react-build-v*.zip 2>/dev/null | sort -V | tail -n 1)
-      if [[ -f "$latest_file" ]]; then
-        unzip -p "$latest_file" | sha256sum | cut -d' ' -f1 > ../latest_hash.txt
-      else
-        echo "no_previous_hash" > ../latest_hash.txt
-      fi
+      - name: Run Lint (optional)
+        run: npm run lint || true
 
-  - name: Download React build artifact
-    uses: actions/download-artifact@v4
-    with:
-      name: react-build
-      path: react-build
+      - name: Run Tests (optional)
+        run: npm test --if-present
 
-  - name: Generate current artifact hash
-    run: |
-      cd react-build
-      zip -r react-temp.zip .
-      unzip -p react-temp.zip | sha256sum | cut -d' ' -f1 > ../current_hash.txt
+      - name: Build React App
+        run: npm run build
 
-  - name: Check for changes
-    id: hash-diff
-    run: |
-      if cmp -s latest_hash.txt current_hash.txt; then
-        echo "no_change=true" >> $GITHUB_OUTPUT
-      else
-        echo "no_change=false" >> $GITHUB_OUTPUT
-      fi
+  codeql-analysis:
+    name: CodeQL Static Analysis
+    runs-on: ubuntu-latest
 
-  - name: Skip if no changes
-    if: steps.hash-diff.outputs.no_change == 'true'
-    run: echo "No changes in React build — skipping commit and push."
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
 
-  - name: Determine next version
-    if: steps.hash-diff.outputs.no_change == 'false'
-    id: version
-    run: |
-      cd react-artifact-repo
-      count=$(ls react-build-v*.zip 2>/dev/null | wc -l)
-      next_version=$((count + 1))
-      echo "version=v$next_version" >> $GITHUB_OUTPUT
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript]
 
-  - name: Rename and move artifact
-    if: steps.hash-diff.outputs.no_change == 'false'
-    run: |
-      VERSION=${{ steps.version.outputs.version }}
-      mv react-build/react-temp.zip Artefact_Storage/react-build-${VERSION}.zip
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  - name: Commit and push ZIP to development branch
-    if: steps.hash-diff.outputs.no_change == 'false'
-    run: |
-      cd react-artifact-repo
-      git config user.name "github-actions[bot]"
-      git config user.email "github-actions[bot]@users.noreply.github.com"
-      git add react-build-*.zip
-      git commit -m "Add React build ZIP version ${{ steps.version.outputs.version }}"
-      git push origin main
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
 
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  zip-and-push-react-artifact:
+    needs: codeql-analysis
+    runs-on: ubuntu-latest
+    if: success()
+
+    steps:
+      - name: Checkout target repo
+        uses: actions/checkout@v3
+        with:
+          repository: felix-murugan/react-artifact-repo
+          ref: main
+          token: ${{ secrets.My_GITHUB_TOKEN }}
+          path: react-artifact-repo
+
+      - name: Check for existing latest version hash
+        id: skip-check
+        run: |
+          cd react-artifact-repo
+          latest_file=$(ls react-build-v*.zip 2>/dev/null | sort -V | tail -n 1)
+          if [[ -f "$latest_file" ]]; then
+            unzip -p "$latest_file" | sha256sum | cut -d' ' -f1 > ../latest_hash.txt
+          else
+            echo "no_previous_hash" > ../latest_hash.txt
+          fi
+
+      - name: Download React build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: react-build
+          path: react-build
+
+      - name: Generate current artifact hash
+        run: |
+          cd react-build
+          zip -r react-temp.zip .
+          unzip -p react-temp.zip | sha256sum | cut -d' ' -f1 > ../current_hash.txt
+
+      - name: Check for changes
+        id: hash-diff
+        run: |
+          if cmp -s latest_hash.txt current_hash.txt; then
+            echo "no_change=true" >> $GITHUB_OUTPUT
+          else
+            echo "no_change=false" >> $GITHUB_OUTPUT
+
+      - name: Skip if no changes
+        if: steps.hash-diff.outputs.no_change == 'true'
+        run: echo "No changes in React build — skipping commit and push."
+
+      - name: Determine next version
+        if: steps.hash-diff.outputs.no_change == 'false'
+        id: version
+        run: |
+          cd react-artifact-repo
+          count=$(ls react-build-v*.zip 2>/dev/null | wc -l)
+          next_version=$((count + 1))
+          echo "version=v$next_version" >> $GITHUB_OUTPUT
+
+      - name: Rename and move artifact
+        if: steps.hash-diff.outputs.no_change == 'false'
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          mv react-build/react-temp.zip react-artifact-repo/react-build-${VERSION}.zip
+
+      - name: Commit and push ZIP to development branch
+        if: steps.hash-diff.outputs.no_change == 'false'
+        run: |
+          cd react-artifact-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add react-build-*.zip
+          git commit -m "Add React build ZIP version ${{ steps.version.outputs.version }}"
+          git push origin main
