@@ -54,6 +54,13 @@ jobs:
       - name: Build React App
         run: npm run build
 
+      - name: Debug build output
+        run: |
+          echo "Listing contents of ./cart directory:"
+          ls -l .
+          echo "Listing contents of ./cart/build directory:"
+          ls -l build || echo "⚠️ Build directory not found!"
+
       - name: Upload React build artifact
         if: success()
         uses: actions/upload-artifact@v4
