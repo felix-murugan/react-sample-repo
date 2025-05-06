@@ -11,8 +11,8 @@ permissions:
   security-events: write
 
 jobs:
-  build:
-    name: Build and Test React App , Artifact & Package
+  testing:
+    name: Test React App       
     runs-on: ubuntu-latest
 
     defaults:
@@ -53,7 +53,8 @@ jobs:
           npm run build 
           
   codeql-analysis:
-    name: CodeQL Static Analysis
+    needs: testing
+    name: Code Scanning
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -78,7 +79,7 @@ jobs:
         uses: github/codeql-action/analyze@v3
 
   zip-and-push-react-artifact:
-    needs: build
+    needs: codeql-analysis
     runs-on: ubuntu-latest
     if: success()
     steps:
