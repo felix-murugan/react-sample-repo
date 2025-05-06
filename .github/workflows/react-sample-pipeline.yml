@@ -147,7 +147,7 @@ jobs:
         if: steps.hash-diff.outputs.no_change == 'false'
         run: |
           VERSION=${{ steps.version.outputs.version }}
-          mv terraform-code/terraform-temp.zip Artefact_Storage/terraform-code-${VERSION}.zip
+          mv terraform-code/terraform-temp.zip react-artifact-repo/terraform-code-${VERSION}.zip
  
       - name: Commit and push ZIP to development branch
         if: steps.hash-diff.outputs.no_change == 'false'
