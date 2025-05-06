@@ -82,7 +82,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: terraform-code
-          path: ./cart/path/to/terraform/files
+          path: ./
 
   zip-and-push-react-artifact:
     needs: codeql-analysis
