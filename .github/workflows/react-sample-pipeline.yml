@@ -47,19 +47,11 @@ jobs:
       - name: Run Tests (optional)
         run: npm test --if-present
 
-      - name: Check if `useeffect.css` exists
-        run: |
-          echo "Checking if useeffect.css exists..."
-          ls ./src/Component/State/useeffect.css || echo "useeffect.css not found"
-
+      
       - name: Build React App
         run: |
-          echo "Starting build process..."
-          npm run build -- --debug  # Added debug flag to gather more info
-
-      - name: Next Step (e.g., Upload or Deploy)
-        run: echo "Build completed! Running next task..."
-
+          npm run build 
+          
   codeql-analysis:
     name: CodeQL Static Analysis
     runs-on: ubuntu-latest
