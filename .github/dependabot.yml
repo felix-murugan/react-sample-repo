@@ -4,3 +4,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+
+  - package-ecosystem: "npm"
+    directory: "/"  # assumes your package.json is in the root
+    schedule:
+      interval: "weekly"
