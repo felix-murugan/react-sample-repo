@@ -173,31 +173,25 @@ jobs:
           git push origin main
 
 
-  create-pr-dev-to-main:
-    needs: zip-and-push-react-artifact
-    if: success()
+  create-pr:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout development branch
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0  # Needed to fetch all branches
-
-      - name: Fetch all branches
-        run: git fetch --all
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       - name: Create Pull Request from development to main
-        id: create_pr
         uses: repo-sync/pull-request@v2
         with:
-          token: ${{ secrets.My_GITHUB_TOKEN }}
-          base: main
-          head: development
-          title: 'Deploy React Artifact - PR from development to main'
-          body: 'This PR contains the latest React artifact. Please review and merge for deployment.'
+          source_branch: development
+          destination_branch: main
+          pr_title: "Auto PR: development to main"
+          pr_body: |
+            This PR was automatically created from the development branch to the main branch.
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
           
   wait-for-pr-merge:
-    needs: create-pr-dev-to-main
+    needs: create-pr
     runs-on: ubuntu-latest
     if: success()
     steps:
