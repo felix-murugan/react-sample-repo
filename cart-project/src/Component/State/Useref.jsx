@@ -5,6 +5,7 @@ function PreviousCountExample() {
   const prevCountRef = useRef();
 
   useEffect(() => {
+    
     prevCountRef.current = count;
     console.log(`Previous count: ${prevCountRef.current}`);
 
@@ -13,6 +14,7 @@ function PreviousCountExample() {
   const prevCount = prevCountRef.current;
 
   return ( 
+    
     <div className="p-4">
       <p className="text-lg">Current Count: {count}</p>
       <p className="text-gray-600">Previous Count: {prevCount}</p>
