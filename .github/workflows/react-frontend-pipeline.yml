@@ -191,18 +191,6 @@ jobs:
             This PR was automatically created from the development branch to the main branch.
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-          
-  # wait-for-pr-merge:
-  #   needs: create-pr
-  #   runs-on: ubuntu-latest
-  #   if: success()
-  #   steps:
-  #     - name: Wait for PR to be merged manually
-  #       uses: fountainhead/action-wait-for-check@v1.1.0
-  #       with:
-  #         token: ${{ secrets.My_GITHUB_TOKEN }}
-  #         checkName: ''
-  #         ref: refs/heads/main
 
 
   build-and-push-docker:
@@ -217,6 +205,9 @@ jobs:
             ref: main
             token: ${{ secrets.My_GITHUB_TOKEN }}
             path: artifact-repo
+
+
+
   
         - name: Copy Dockerfile
           run: cp artifact-repo/frontend-artifact-latest.zip .
