@@ -16,8 +16,10 @@ const Carts = () => {
   };
 
   const deleteItem = (indexToDelete) => {
+    
     const updatedCart = cartItems.filter((item, index) => index !== indexToDelete);
     setCartItems(updatedCart);
+    
   };
 
   return (
