@@ -205,9 +205,6 @@ jobs:
             ref: main
             token: ${{ secrets.My_GITHUB_TOKEN }}
             path: artifact-repo
-
-
-
-  
-        - name: Copy Dockerfile
-          run: cp artifact-repo/frontend-artifact-latest.zip .
+        
+        - name: Copy frontend artifact
+          run: cp artifact-repo/frontend-artifact/frontend-artifact-latest.zip .
