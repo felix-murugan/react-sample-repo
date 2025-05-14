@@ -13,8 +13,6 @@ function PreviousCountExample() {
   const prevCount = prevCountRef.current;
 
   return ( 
-
-    
     <div className="p-4">
       <p className="text-lg">Current Count: {count}</p>
       <p className="text-gray-600">Previous Count: {prevCount}</p>
@@ -26,7 +24,6 @@ function PreviousCountExample() {
       </button>
     </div>
   );
-  
 }
 
 export default PreviousCountExample;
