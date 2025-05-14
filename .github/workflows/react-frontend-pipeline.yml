@@ -172,34 +172,34 @@ jobs:
           git commit -m "Add frontend-artifact ${{ steps.version.outputs.version }}"
           git push origin main
 
-  # create-pr:
-  #   name: Create Pull Request to Main
-  #   runs-on: ubuntu-latest
-  #   needs: zip-and-push-react-artifact
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
+  create-pr:
+    name: Create Pull Request to Main
+    runs-on: ubuntu-latest
+    needs: zip-and-push-react-artifact
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-  #     - name: Create Pull Request from development to main
-  #       uses: repo-sync/pull-request@v2
-  #       with:
-  #         source_branch: development
-  #         destination_branch: main
-  #         pr_title: "Auto PR: development to main"
-  #         pr_body: |
-  #           This PR was automatically created from the development branch to the main branch.
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+      - name: Create Pull Request from development to main
+        uses: repo-sync/pull-request@v2
+        with:
+          source_branch: development
+          destination_branch: main
+          pr_title: "Auto PR: development to main"
+          pr_body: |
+            This PR was automatically created from the development branch to the main branch.
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
 
-  # wait-for-approval:
-  #   name: Wait for Manual Approval
-  #   runs-on: ubuntu-latest
-  #   needs: create-pr
-  #   environment:
-  #     name: production
-  #     # url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-  #   steps:
-  #     - name: Approval Required
-  #       run: echo "Awaiting manual approval..."
+  wait-for-approval:
+    name: Wait for Manual Approval
+    runs-on: ubuntu-latest
+    needs: create-pr
+    environment:
+      name: production
+      # url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Approval Required
+        run: echo "Awaiting manual approval..."
         
   
