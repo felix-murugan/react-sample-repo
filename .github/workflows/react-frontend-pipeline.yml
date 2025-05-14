@@ -149,7 +149,7 @@ jobs:
         id: version
         run: |
           cd react-artifact-repo/frontend-artifact
-          count=$(ls Frontend_Artifact-v*.zip 2>/dev/null | wc -l)
+          count=$(ls frontend-artifact-v*.zip 2>/dev/null | wc -l)
           
           echo "version=v$((count + 1))" >> $GITHUB_OUTPUT
 
