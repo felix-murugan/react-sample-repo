@@ -171,3 +171,38 @@ jobs:
           git add frontend-artifact/frontend-artifact-*.zip
           git commit -m "Add frontend-artifact ${{ steps.version.outputs.version }}"
           git push origin main
+
+
+  create-pr-dev-to-main:
+    needs: zip-and-push-react-artifact
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.My_GITHUB_TOKEN }}
+
+      - name: Create Pull Request from development to main
+        id: create_pr
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.My_GITHUB_TOKEN }}
+          base: main
+          head: development
+          title: 'Deploy React Artifact - PR from development to main'
+          body: 'This PR contains the latest React artifact. Please review and merge for deployment.'
+          branch: auto/dev-to-main-${{ github.run_id }}
+          delete-branch: true
+          
+  wait-for-pr-merge:
+    needs: create-pr-dev-to-main
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+      - name: Wait for PR to be merged manually
+        uses: fountainhead/action-wait-for-check@v1.1.0
+        with:
+          token: ${{ secrets.My_GITHUB_TOKEN }}
+          checkName: ''
+          ref: refs/heads/main
