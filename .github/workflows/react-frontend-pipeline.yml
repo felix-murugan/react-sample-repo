@@ -194,7 +194,7 @@ jobs:
   wait-for-approval:
     name: Wait for Manual Approval
     runs-on: ubuntu-latest
-    # needs: create-pr
+    needs: create-pr
     # environment:
       # name: production
       # url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
