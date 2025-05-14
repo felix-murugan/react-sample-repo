@@ -10,7 +10,7 @@ RUN apk add --no-cache unzip && unzip frontend-artifact-latest.zip
 WORKDIR /app/cart-project
 
 # Copy package.json and package-lock.json before installing dependencies
-COPY cart-project/package.json cart-project/package-lock.json ./
+COPY cart-project/package.json cart-project/package-lock.json ./cart-project/
 
 # Install dependencies and build the app
 RUN npm install || { echo 'npm install failed'; exit 1; }
