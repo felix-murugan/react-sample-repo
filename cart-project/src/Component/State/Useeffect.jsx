@@ -17,12 +17,14 @@ const Useeffect = () => {
   }, [])
 
   return (
+    
     <div className='useeffect'>
       <h1>useEffect</h1>
       <h2 className='count'>Count: {count}</h2>
       <button onClick={() => setCount(100)} className='btn-1'>setCount</button>
       <button onClick={() => setCount(0)} className='btn-2'>Reset</button>
     </div>
+    
   )
 }
 

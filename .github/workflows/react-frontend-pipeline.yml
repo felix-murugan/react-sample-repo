@@ -157,7 +157,7 @@ jobs:
         if: steps.hash-diff.outputs.no_change == 'false'
         run: |
           VERSION=${{ steps.version.outputs.version }}
-          mv React-Artifact-code/react-temp.zip "react-artifact-repo/frontend-artifact/frontend-artifact-${VERSION}.zip"
+          mv React-Artifact-code/react-temp.zip react-artifact-repo/frontend-artifact/frontend-artifact-${VERSION}.zip
           cp "react-artifact-repo/frontend-artifact/frontend-artifact-${VERSION}.zip" \
              react-artifact-repo/frontend-artifact/frontend-artifact-latest.zip
 
@@ -172,10 +172,11 @@ jobs:
           git commit -m "Add frontend-artifact ${{ steps.version.outputs.version }}"
           git push origin main
 
+
   create-pr:
-    name: Create Pull Request to Main
-    runs-on: ubuntu-latest
     needs: zip-and-push-react-artifact
+    if: success()
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -191,21 +192,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
 
-  wait-for-approval:
-    name: Wait for Manual Approval
-    runs-on: ubuntu-latest
-    needs: create-pr
-    # environment:
-    #   name: production
-      # url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-    steps:
-      - name: Approval Required
-        run: echo "Awaiting manual approval..."
 
-  build-and-deploy:
-    needs: wait-for-approval
-    runs-on: ubuntu-latest
-    steps:
-      - name: Docker build
+  build-and-push-docker:
+      if: github.ref == 'refs/heads/main'
+      runs-on: ubuntu-latest
+      needs: create-pr
+      steps:
+        - name: Checkout artifact repo
+          uses: actions/checkout@v3
+          with:
+            repository: felix-murugan/react-artifact-repo
+            ref: main
+            token: ${{ secrets.My_GITHUB_TOKEN }}
+            path: artifact-repo
+
+
 
   
+        - name: Copy Dockerfile
+          run: cp artifact-repo/frontend-artifact-latest.zip .
