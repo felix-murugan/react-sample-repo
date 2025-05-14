@@ -149,7 +149,7 @@ jobs:
         id: version
         run: |
           cd react-artifact-repo/frontend-artifact
-          count=$(ls frontend-artifact-v*.zip 2>/dev/null | wc -l)
+          count=$(ls Frontend_Artifact-v*.zip 2>/dev/null | wc -l)
           
           echo "version=v$((count + 1))" >> $GITHUB_OUTPUT
 
@@ -157,7 +157,7 @@ jobs:
         if: steps.hash-diff.outputs.no_change == 'false'
         run: |
           VERSION=${{ steps.version.outputs.version }}
-          mv React-Artifact-code/react-temp.zip "react-artifact-repo/frontend-artifact/frontend-artifact-${VERSION}.zip"
+          mv React-Artifact-code/react-temp.zip react-artifact-repo/frontend-artifact/frontend-artifact-${VERSION}.zip
           cp "react-artifact-repo/frontend-artifact/frontend-artifact-${VERSION}.zip" \
              react-artifact-repo/frontend-artifact/frontend-artifact-latest.zip
 
@@ -171,42 +171,3 @@ jobs:
           git add frontend-artifact/frontend-artifact-*.zip
           git commit -m "Add frontend-artifact ${{ steps.version.outputs.version }}"
           git push origin main
-
-  create-pr:
-    name: Create Pull Request to Main
-    runs-on: ubuntu-latest
-    needs: zip-and-push-react-artifact
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Create Pull Request from development to main
-        uses: repo-sync/pull-request@v2
-        with:
-          source_branch: development
-          destination_branch: main
-          pr_title: "Auto PR: development to main"
-          pr_body: |
-            This PR was automatically created from the development branch to the main branch.
-        env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-
-  wait-for-approval:
-    name: Wait for Manual Approval
-    runs-on: ubuntu-latest
-    needs: create-pr
-    # environment:
-      # name: production
-      # url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-    steps:
-      - name: Approval Required
-        run: echo "Awaiting manual approval..."
-
-
-  build-and-deploy:
-    needs: wait-for-approval
-    runs-on: ubuntu-latest
-    steps:
-      - name: Docker build
-        
-  
