@@ -178,10 +178,13 @@ jobs:
     if: success()
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout development branch
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.My_GITHUB_TOKEN }}
+          fetch-depth: 0  # Needed to fetch all branches
+
+      - name: Fetch all branches
+        run: git fetch --all
 
       - name: Create Pull Request from development to main
         id: create_pr
@@ -192,8 +195,6 @@ jobs:
           head: development
           title: 'Deploy React Artifact - PR from development to main'
           body: 'This PR contains the latest React artifact. Please review and merge for deployment.'
-          branch: auto/dev-to-main-${{ github.run_id }}
-          delete-branch: true
           
   wait-for-pr-merge:
     needs: create-pr-dev-to-main
