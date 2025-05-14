@@ -173,30 +173,30 @@ jobs:
           git push origin main
 
 
-  create-pr:
-    needs: zip-and-push-react-artifact
-    if: success()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+  # create-pr:
+  #   needs: zip-and-push-react-artifact
+  #   if: success()
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
 
-      - name: Create Pull Request from development to main
-        uses: repo-sync/pull-request@v2
-        with:
-          source_branch: development
-          destination_branch: main
-          pr_title: "Auto PR: development to main"
-          pr_body: |
-            This PR was automatically created from the development branch to the main branch.
-        env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+  #     - name: Create Pull Request from development to main
+  #       uses: repo-sync/pull-request@v2
+  #       with:
+  #         source_branch: development
+  #         destination_branch: main
+  #         pr_title: "Auto PR: development to main"
+  #         pr_body: |
+  #           This PR was automatically created from the development branch to the main branch.
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
 
 
   build-and-push-docker:
       if: github.ref == 'refs/heads/main'
       runs-on: ubuntu-latest
-      needs: create-pr
+      needs: zip-and-push-react-artifact
       steps:
         - name: Checkout artifact repo
           uses: actions/checkout@v3
