@@ -211,6 +211,7 @@ jobs:
     
         - name: Copy frontend artifact to current directory
           run: cp artifact-repo/frontend-artifact/frontend-artifact-latest.zip ./frontend-artifact.zip
+
     
         - name: List files for debug (optional but recommended)
           run: ls -al
