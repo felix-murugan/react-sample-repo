@@ -3,8 +3,8 @@ FROM node:18-alpine AS builder
 WORKDIR /app
 
 # Copy and unzip artifact
-COPY Artifact_Storage/Frontend_Artifact/Frontend_Artifact-latest.zip
-RUN apk add --no-cache unzip && unzip Frontend_Artifact-latest.zip
+COPY react-artifact-repo/frontend-artifact//frontend-artifact-latest.zip
+RUN apk add --no-cache unzip && unzip frontend-artifact-latest.zip
 
 # Change into the React app directory
 WORKDIR /app/cart-project
