@@ -194,41 +194,42 @@ jobs:
 
 
   build-and-push-docker:
-      runs-on: ubuntu-latest
-      needs: zip-and-push-react-artifact
-    
-      steps:
-        - name: Checkout current repo (main repo where Dockerfile lives)
-          uses: actions/checkout@v3
-    
-        - name: Checkout artifact repo
-          uses: actions/checkout@v3
-          with:
-            repository: felix-murugan/react-artifact-repo
-            ref: main
-            token: ${{ secrets.My_GITHUB_TOKEN }}
-            path: artifact-repo  # Keeps the artifact repo in a subfolder
-    
-        - name: Copy frontend artifact to current directory
-          run: cp artifact-repo/frontend-artifact/frontend-artifact-latest.zip ./frontend-artifact.zip
-
-    
-        - name: List files for debug (optional but recommended)
-          run: ls -al
-    
-        - name: Set up Docker Buildx
-          uses: docker/setup-buildx-action@v3
-    
-        - name: Log in to Docker Hub
-          uses: docker/login-action@v3
-          with:
-            username: ${{ secrets.DOCKER_USERNAME }}
-            password: ${{ secrets.DOCKER_PASSWORD }}
-    
-        - name: Build and Push Docker image
-          uses: docker/build-push-action@v5
-          with:
-            context: .
-            file: ./Dockerfile
-            push: true
-            tags: ${{ secrets.DOCKER_USERNAME }}/react-frontend:latest
+    runs-on: ubuntu-latest
+    needs: zip-and-push-react-artifact
+  
+    steps:
+      - name: Checkout current repo (main repo where Dockerfile lives)
+        uses: actions/checkout@v3
+        with:
+          path: main-repo
+  
+      - name: Checkout artifact repo
+        uses: actions/checkout@v3
+        with:
+          repository: felix-murugan/react-artifact-repo
+          ref: main
+          token: ${{ secrets.My_GITHUB_TOKEN }}
+          path: artifact-repo  # Keeps the artifact repo in a subfolder
+  
+      - name: Copy frontend artifact to main repo directory
+        run: cp artifact-repo/frontend-artifact/frontend-artifact-latest.zip main-repo/frontend-artifact.zip
+  
+      - name: List files for debug (optional but recommended)
+        run: ls -al main-repo
+  
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+  
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+  
+      - name: Build and Push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./main-repo
+          file: ./main-repo/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/react-frontend:latest
