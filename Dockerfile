@@ -2,11 +2,11 @@
 FROM node:18-alpine AS builder
 WORKDIR /app
 
-# Copy and unzip artifact
-COPY react-artifact-repo/frontend-artifact/frontend-artifact-latest.zip
-RUN apk add --no-cache unzip && unzip frontend-artifact-latest.zip
+# Copy and unzip the React artifact (copied by GitHub Actions)
+COPY frontend-artifact.zip .
+RUN apk add --no-cache unzip && unzip frontend-artifact.zip
 
-# Change into the React app directory
+# Change into the React app directory inside the extracted zip
 WORKDIR /app/cart-project
 
 # Install dependencies and build the app
