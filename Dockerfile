@@ -25,7 +25,7 @@ RUN npm cache clean --force
 RUN npm install --legacy-peer-deps || { echo 'npm install failed'; exit 1; }
 
 # Copy the source code correctly
-COPY react-artifact-repo/frontend-artifact/frontend-artifact-latest/cart-project/ ./
+COPY react-artifact-repo/frontend-artifact/frontend-artifact-latest/cart-project/ 
 
 # Build the app
 RUN npm run build || { echo 'npm run build failed'; exit 1; }
