@@ -12,7 +12,7 @@ COPY react-artifact-repo/frontend-artifact/frontend-artifact-latest.zip /app/fro
 RUN unzip frontend-artifact-latest.zip -d /app/frontend-artifact-latest
 
 # Move into the React project directory after unzipping
-WORKDIR /app/frontend-artifact-latest/cart-project
+WORKDIR /app/frontend-artifact-latest/cart-project/
 
 # Debug: Ensure package.json exists
 RUN ls -l /app/frontend-artifact-latest/cart-project/
@@ -21,7 +21,8 @@ RUN ls -l /app/frontend-artifact-latest/cart-project/
 RUN chown -R node:node /app/frontend-artifact-latest/cart-project
 
 # Install dependencies and build the React app
-RUN npm install || { echo 'npm install failed'; exit 1; }
+RUN npm cache clean --force
+RUN npm install --legacy-peer-deps || { echo 'npm install failed'; exit 1; }
 RUN npm run build || { echo 'npm run build failed'; exit 1; }
 
 # Stage 2: Serve with NGINX
