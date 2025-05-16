@@ -26,13 +26,13 @@ RUN npm install
 RUN npm run build
 
 # Stage 2: Serve with NGINX
-FROM nginx:alpine
+# FROM nginx:alpine
 
-# Copy build output from builder stage
-COPY --from=builder /app/frontend-artifact-latest/cart-project/dist /usr/share/nginx/html
-COPY ./nginx.conf /etc/nginx/conf.d/default.conf
-# Expose port 80
-EXPOSE 80
+# # Copy build output from builder stage
+# COPY --from=builder /app/frontend-artifact-latest/cart-project/dist /usr/share/nginx/html
+# COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+# # Expose port 80
+# EXPOSE 80
 
 # Start NGINX server
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["npm", "run", "dev"]
