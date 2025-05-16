@@ -13,7 +13,7 @@ RUN unzip frontend-artifact-latest.zip -d ./frontend-artifact-latest
 
 WORKDIR /app/frontend-artifact-latest/cart-project
 
-COPY /frontend-artifact-latest/cart-project/package*.json ./
+COPY frontend-artifact-latest/cart-project/package*.json ./
 RUN npm install
 # Move into your React project directory
 # WORKDIR /app/frontend-artifact-latest/cart-project
