@@ -173,40 +173,42 @@ jobs:
           git push origin main
 
 
-  create-pr:
-    needs:  zip-and-push-react-artifact
-    runs-on: ubuntu-latest
-    outputs:
-      pr_url: ${{ steps.create_pr.outputs.pr_url }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+  # create-pr:
+  #   needs:  zip-and-push-react-artifact
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     pr_url: ${{ steps.create_pr.outputs.pr_url }}
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
 
-      - name: Create Pull Request from development to main
-        id: create_pr
-        uses: repo-sync/pull-request@v2
-        with:
-          source_branch: development
-          destination_branch: main
-          pr_title: "Auto PR: development to main"
-          pr_body: |
-            This PR was created from the development to main branch.
-        env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+  #     - name: Create Pull Request from development to main
+  #       id: create_pr
+  #       uses: repo-sync/pull-request@v2
+  #       with:
+  #         source_branch: development
+  #         destination_branch: main
+  #         pr_title: "Auto PR: development to main"
+  #         pr_body: |
+  #           This PR was created from the development to main branch.
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
   
-      - name: Require Manual Approval
-        uses: trstringer/manual-approval@v1
-        with:
-            approvers: ${{ secrets.APPROVERS }}  
-            issue-title: "Manual Approval Required"
-            issue-body: "Please approved or deny the pull request."
-            minimum-approvals: 1
-            secret: ${{ secrets.MY_GITHUB_TOKEN }}
-        env:
-           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+  #     - name: Require Manual Approval
+  #       uses: trstringer/manual-approval@v1
+  #       with:
+  #           approvers: ${{ secrets.APPROVERS }}  
+  #           issue-title: "Manual Approval Required"
+  #           issue-body: "Please approved or deny the pull request."
+  #           minimum-approvals: 1
+  #           secret: ${{ secrets.MY_GITHUB_TOKEN }}
+  #       env:
+  #          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+
+  
   build-and-deploy:
     name: Build and Deploy Docker Image
-    needs: create-pr
+    needs: zip-and-push-react-artifact
     runs-on: ubuntu-latest
   
     steps:
