@@ -2,39 +2,38 @@
 FROM node:18-alpine AS builder
 WORKDIR /app
 
-# Install dependencies required for unzipping
+# Install unzip for extracting the artifact
 RUN apk add --no-cache unzip
 
-# Copy the artifact ZIP file from the artifact repository into the container
+# Copy the React artifact ZIP into the container
 COPY react-artifact-repo/frontend-artifact/frontend-artifact-latest.zip /app/frontend-artifact-latest.zip
 
-# Unzip the artifact into the working directory
+# Unzip the artifact
 RUN unzip frontend-artifact-latest.zip -d /app/frontend-artifact-latest
 
-# Move into the React project directory after unzipping
+# Move into the React project directory
 WORKDIR /app/frontend-artifact-latest/cart-project/
 
-# Debug: Ensure package.json exists
-RUN ls -l /app/frontend-artifact-latest/cart-project/.
+# Debug: List files to ensure package.json is present
+RUN ls -al
 
-# Ensure correct file permissions
-RUN chown -R node:node /app/frontend-artifact-latest/cart-project
+# Set correct permissions (optional but good practice)
+RUN chown -R node:node .
 
-# Install dependencies and build the React app
-# RUN npm cache clean --force
-# RUN npm install --legacy-peer-deps || { echo 'npm install failed'; exit 1; }
-# RUN npm run build || { echo 'npm run build failed'; exit 1; }
-RUN npm install
-RUN npm run build
+# Install dependencies (with legacy-peer-deps to avoid React peer issues)
+RUN npm cache clean --force && npm install --legacy-peer-deps || (echo "npm install failed" && exit 1)
+
+# Build the React app
+RUN npm run build || (echo "npm build failed" && exit 1)
 
 # Stage 2: Serve with NGINX
 FROM nginx:alpine
 
-# Copy built React app to NGINX html directory
+# Copy built app to NGINX default public directory
 COPY --from=builder /app/frontend-artifact-latest/cart-project/dist /usr/share/nginx/html
 
-# Expose port 80
+# Expose the default port
 EXPOSE 80
 
-# Start NGINX server
+# Start NGINX
 CMD ["nginx", "-g", "daemon off;"]
