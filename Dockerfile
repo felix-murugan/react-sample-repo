@@ -9,10 +9,11 @@ RUN apk add --no-cache unzip
 COPY react-artifact-repo/frontend-artifact/frontend-artifact-latest.zip /app/frontend-artifact-latest.zip
 
 # Unzip the artifact into the working directory
-RUN unzip frontend-artifact-latest.zip -d /app/frontend-artifact
-
+RUN unzip frontend-artifact-latest.zip -d /app/frontend-artifact-latest
 # Move into the React project directory after unzipping
-WORKDIR /app/frontend-artifact/cart-project
+WORKDIR /app/frontend-artifact-latest/cart-project
+RUN npm install
+
 
 # Install dependencies and build the React app
 RUN npm install || { echo 'npm install failed'; exit 1; }
