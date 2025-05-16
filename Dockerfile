@@ -30,7 +30,7 @@ FROM nginx:alpine
 
 # Copy build output from builder stage
 COPY --from=builder /app/frontend-artifact-latest/cart-project/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 # Expose port 80
 EXPOSE 80
 
