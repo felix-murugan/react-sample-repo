@@ -227,6 +227,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Debug File Location
+        run: |
+            echo "Listing files..."
+            ls -l
+            echo "Searching for Dockerfile..."
+            find . -name "Dockerfile"
+
       # Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -235,11 +242,11 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       # Build and push Docker image
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/react-app:latest
+      # - name: Build and push Docker image
+      #   uses: docker/build-push-action@v5
+      #   with:
+      #     context: .
+      #     file: Dockerfile
+      #     push: true
+      #     tags: ${{ secrets.DOCKER_USERNAME }}/react-app:latest
   
