@@ -1,20 +1,30 @@
-# Stage 1: Build React App
-FROM node:18-alpine AS builder
+# Use Node base image
+FROM node:18
+
+# Set working directory
 WORKDIR /app
 
-# Install unzip tool
-RUN apk add --no-cache unzip
+# Install p7zip to extract .zip files
+RUN apt-get update && \
+    apt-get install -y p7zip-full
 
-# Copy artifact ZIP
-COPY react-artifact-repo/frontend-artifact/frontend-artifact-latest.zip ./frontend-artifact-latest.zip
+# # Copy and extract zip file
+COPY react-artifact-repo/frontend-artifact/frontend-artifact-latest.zip ./
 
-# Unzip artifact
-RUN unzip frontend-artifact-latest.zip -d ./frontend-artifact-latest
+RUN 7z x frontend-artifact-latest.zip && rm frontend-artifact-latest.zip
 
-WORKDIR /app/frontend-artifact-latest/cart-project
 
-COPY frontend-artifact-latest/cart-project/package*.json ./
-RUN npm install
+# 👇 Add this debug line to list the extracted files/folders
+RUN echo "=== Extracted contents ===" && ls -la
+
+
+
+
+
+# WORKDIR /app/frontend-artifact-latest/cart-project
+
+# COPY frontend-artifact-latest/cart-project/package*.json ./
+# RUN npm install
 # Move into your React project directory
 # WORKDIR /app/frontend-artifact-latest/cart-project
 
@@ -23,7 +33,7 @@ RUN npm install
 # RUN npm install --legacy-peer-deps
 
 # Build React app (Vite uses `vite build` behind the scenes with npm run build)
-RUN npm run build
+# RUN npm run build
 
 # Stage 2: Serve with NGINX
 # FROM nginx:alpine
