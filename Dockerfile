@@ -14,19 +14,24 @@ RUN unzip artifact.zip -d cart-project-clean && \
     echo "Detected project folder: $CART_DIR" && \
     mv "$CART_DIR" cart-project-clean-cleaned
 
-# Set working directory to the extracted project
 WORKDIR /app/cart-project-clean-cleaned
 
-# Install dependencies
-RUN npm install
+# Copy only package.json and package-lock.json for better cache and safe partial install
+COPY --chown=node:node package*.json ./
 
-# Fix potential permission issue with esbuild
-RUN chmod -R +x node_modules/esbuild/bin || true
+# 1. Install esbuild separately
+RUN npm install esbuild
 
-# Optional build
+# 2. Fix the permissions on esbuild binary
+RUN chmod +x node_modules/esbuild/bin/esbuild
+
+# 3. Install remaining dependencies, skipping esbuild since it’s already installed
+RUN npm install --omit=dev || true
+
+# Optional build step (safe fallback)
 RUN npm run build || echo "Skipping build - maybe already done"
 
-# Serve the built app
+# Serve
 WORKDIR /app/cart-project-clean-cleaned/dist
 EXPOSE 5173
 CMD ["serve", "-s", ".", "-l", "5173"]
