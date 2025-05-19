@@ -1,29 +1,33 @@
-# Use Node.js base image
+# Use official Node image
 FROM node:18
 
 # Set working directory
 WORKDIR /app
 
-# Install 7zip
+# Install 7zip to extract the artifact
 RUN apt-get update && \
     apt-get install -y p7zip-full && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy artifact zip
+# Copy the zipped artifact (from your GitHub checkout)
 COPY react-artifact-repo/frontend-artifact/frontend-artifact-latest.zip .
 
-# Extract it
+# Extract the zipped artifact
 RUN 7z x -aoa frontend-artifact-latest.zip && rm frontend-artifact-latest.zip
 
-# (Optional) Confirm cart-project exists
-RUN ls -la ./cart-project
+# Set working directory to extracted project
+WORKDIR /app/cart-project-clean
 
-# Continue with build
-WORKDIR /app/cart-project
+# Install dependencies freshly
 RUN npm install
-RUN npm run build
 
+# Optional: Build again (or skip if dist/ already included)
+# RUN npm run build
+
+# Install serve to run static build
 RUN npm install -g serve
-WORKDIR /app/cart-project/dist
-EXPOSE 5173
+
+# Serve build output
+WORKDIR /app/cart-project-clean/dist
+EXPOSE "5173
 CMD ["serve", "-s", ".", "-l", "5173"]
