@@ -245,7 +245,8 @@ jobs:
         with:
             username: ${{ secrets.DOCKER_USERNAME }}
             password: ${{ secrets.DOCKER_PASSWORD }}
-        
+
+         
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -254,6 +255,7 @@ jobs:
             push: true
             tags: ${{ secrets.DOCKER_USERNAME }}/react-app:latest
     
+
       - name: List Docker images (for debug)
         run: docker images
 
@@ -272,3 +274,6 @@ jobs:
       - name: Push image to GHCR
         run: |
           docker push ghcr.io/${{ github.repository_owner }}/react-app:latest
+
+      
+  
