@@ -3,7 +3,7 @@ FROM node:18
 WORKDIR /app
 
 # Copy the React artifact zip
-COPY react-artifact-repo/frontend-artifact/*.zip ./artifact.zip
+COPY react-artifact-repo/frontend-artifact/latest.zip ./artifact.zip
 
 # Install unzip and serve
 RUN apt-get update && apt-get install -y unzip && npm install -g serve
