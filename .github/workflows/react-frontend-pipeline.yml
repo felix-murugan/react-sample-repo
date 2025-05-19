@@ -287,10 +287,28 @@ jobs:
           location: ${{ secrets.GKE_ZONE }}
           project_id: ${{ secrets.GCP_PROJECT }}
  
+      # 🔐 Create GHCR secret in GKE
+      - name: Create GHCR imagePullSecret in GKE
+        run: |
+          kubectl delete secret ghcr-secret --ignore-not-found
+          kubectl create secret docker-registry ghcr-secret \
+            --docker-server=ghcr.io \
+            --docker-username=${{ github.actor }} \
+            --docker-password=${{ secrets.MY_GITHUB_TOKEN }} \
+            --docker-email=no@email.com
+
+      # 🛠️ Patch the deployment YAML to include imagePullSecrets (optional if it's already in YAML)
+      - name: Patch deployment to use imagePullSecret
+        run: |
+          kubectl patch deployment react-app \
+            --patch '{"spec": {"template": {"spec": {"imagePullSecrets": [{"name": "ghcr-secret"}]}}}}'
+
+      # 🚀 Deploy to GKE
       - name: Deploy to GKE
         run: |
-            kubectl apply -f deployment.yaml
-            kubectl apply -f service.yaml
-            sleep 35
-            kubectl get svc -o wide
+          kubectl apply -f deployment.yaml
+          kubectl apply -f service.yaml
+          sleep 45
+          kubectl get pods -o wide
+          kubectl get svc -o wide
   
