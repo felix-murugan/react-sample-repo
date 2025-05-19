@@ -4,36 +4,26 @@ FROM node:18
 # Set working directory
 WORKDIR /app
 
-# Install 7zip to unzip the artifact
+# Install 7zip
 RUN apt-get update && \
     apt-get install -y p7zip-full && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy artifact zip from external repo into container
+# Copy artifact zip
 COPY react-artifact-repo/frontend-artifact/frontend-artifact-latest.zip .
 
-# Extract artifact and handle overwriting files
-RUN 7z x -aoa frontend-artifact-latest.zip && \
-    rm frontend-artifact-latest.zip && \
-    echo "=== Extracted files (ls -l) ===" && \
-    ls -l && \
-    echo "=== Recursive listing (tree substitute using find) ===" && \
-    find . -type f
+# Extract it
+RUN 7z x -aoa frontend-artifact-latest.zip && rm frontend-artifact-latest.zip
 
-# Optional: Move cart-project if it's nested in a subdirectory
-RUN CART_DIR=$(find . -type d -name "cart-project" | head -n 1) && \
-    echo "Found cart-project at: $CART_DIR" && \
-    mv "$CART_DIR" ./cart-project
+# (Optional) Confirm cart-project exists
+RUN ls -la ./cart-project
 
-# Install dependencies
-RUN cd cart-project && npm install
-
-# Change working directory to the React project
+# Continue with build
 WORKDIR /app/cart-project
+RUN npm install
+RUN npm run build
 
-# Expose Vite dev port
+RUN npm install -g serve
+WORKDIR /app/cart-project/dist
 EXPOSE 5173
-
-# Run Vite dev server
 CMD ["serve", "-s", ".", "-l", "5173"]
-
