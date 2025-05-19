@@ -23,6 +23,8 @@ RUN 7z x frontend-artifact-latest.zip && \
     echo "=== Recursive listing (tree substitute using find) ===" && \
     find . -type f
 
+RUN   ls -l
+
 # Copy package.json files from extracted folder
 COPY cart-project/package*.json ./cart-project/
 
@@ -31,6 +33,7 @@ RUN cd cart-project && npm install
 
 # Copy full frontend code
 COPY cart-project/ ./cart-project/
+
 
 # Change working directory to the React project
 WORKDIR /app/cart-project
