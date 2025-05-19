@@ -1,31 +1,36 @@
-# Use Node base image
+# Use Node.js base image
 FROM node:18
 
 # Set working directory
 WORKDIR /app
 
-# Install p7zip to unzip the file
+# Install 7zip to unzip the artifact
 RUN apt-get update && \
     apt-get install -y p7zip-full && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy the zip artifact into the container
-COPY react-artifact-repo/frontend-artifact/frontend-artifact-latest.zip ./
+# Copy artifact zip from external repo into container
+COPY react-artifact-repo/frontend-artifact/frontend-artifact-latest.zip .
 
-# Extract and clean up the zip, and confirm structure
+# Extract and clean up
 RUN 7z x frontend-artifact-latest.zip && \
     rm frontend-artifact-latest.zip && \
     echo "=== Extracted contents ===" && ls -la
 
-# Copy package files and install dependencies
-COPY cart-project/package*.json ./
-RUN npm install
+# Copy package.json files from extracted folder
+COPY cart-project/package*.json ./cart-project/
 
-# Copy the rest of the frontend code
-COPY cart-project/ ./
+# Install dependencies
+RUN cd cart-project && npm install
 
-# Expose React development server port
-EXPOSE 3000
+# Copy full frontend code
+COPY cart-project/ ./cart-project/
 
-# Start the React app
+# Change working directory to the React project
+WORKDIR /app/cart-project
+
+# Expose Vite dev port
+EXPOSE 5173
+
+# Run Vite dev server
 CMD ["npm", "run", "dev"]
