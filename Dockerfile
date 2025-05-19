@@ -17,11 +17,11 @@ RUN unzip artifact.zip -d cart-project-clean && \
 # Set working directory to the extracted project
 WORKDIR /app/cart-project-clean-cleaned
 
-# Fix potential permission issue with esbuild
-RUN chmod -R +x node_modules/esbuild/bin || true
-
 # Install dependencies
 RUN npm install
+
+# Fix potential permission issue with esbuild
+RUN chmod -R +x node_modules/esbuild/bin || true
 
 # Optional build
 RUN npm run build || echo "Skipping build - maybe already done"
