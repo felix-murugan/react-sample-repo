@@ -29,5 +29,5 @@ RUN npm install -g serve
 
 # Serve build output
 WORKDIR /app/cart-project-clean/dist
-EXPOSE "5173
+EXPOSE 5173
 CMD ["serve", "-s", ".", "-l", "5173"]
