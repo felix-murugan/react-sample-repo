@@ -12,10 +12,16 @@ RUN apt-get update && \
 # Copy artifact zip from external repo into container
 COPY react-artifact-repo/frontend-artifact/frontend-artifact-latest.zip .
 
-# Extract and clean up
+# # Extract and clean up
+# RUN 7z x frontend-artifact-latest.zip && \
+#     rm frontend-artifact-latest.zip && \
+#     echo "=== Extracted contents ===" && ls -la
 RUN 7z x frontend-artifact-latest.zip && \
     rm frontend-artifact-latest.zip && \
-    echo "=== Extracted contents ===" && ls -la
+    echo "=== Extracted files (ls -l) ===" && \
+    ls -l && \
+    echo "=== Recursive listing (tree substitute using find) ===" && \
+    find . -type f
 
 # Copy package.json files from extracted folder
 COPY cart-project/package*.json ./cart-project/
