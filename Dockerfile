@@ -35,4 +35,5 @@ WORKDIR /app/cart-project
 EXPOSE 5173
 
 # Run Vite dev server
-CMD ["npm", "run", "dev"]
+CMD ["serve", "-s", ".", "-l", "5173"]
+
