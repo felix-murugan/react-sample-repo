@@ -256,59 +256,59 @@ jobs:
             tags: ${{ secrets.DOCKER_USERNAME }}/react-app:latest
     
 
-      - name: List Docker images (for debug)
-        run: docker images
+      # - name: List Docker images (for debug)
+      #   run: docker images
 
 
-      - name: Log in to GitHub Container Registry (GHCR)
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.MY_GITHUB_TOKEN }}
+      # - name: Log in to GitHub Container Registry (GHCR)
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${{ github.actor }}
+      #     password: ${{ secrets.MY_GITHUB_TOKEN }}
 
-      - name: Tag image for GHCR
-        run: |
-          docker tag ${{ secrets.DOCKER_USERNAME }}/react-app:latest ghcr.io/${{ github.repository_owner }}/react-app:latest
+      # - name: Tag image for GHCR
+      #   run: |
+      #     docker tag ${{ secrets.DOCKER_USERNAME }}/react-app:latest ghcr.io/${{ github.repository_owner }}/react-app:latest
 
-      - name: Push image to GHCR
-        run: |
-          docker push ghcr.io/${{ github.repository_owner }}/react-app:latest
+      # - name: Push image to GHCR
+      #   run: |
+      #     docker push ghcr.io/${{ github.repository_owner }}/react-app:latest
 
-      - name: Authenticate to GCP
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      # - name: Authenticate to GCP
+      #   uses: google-github-actions/auth@v2
+      #   with:
+      #     credentials_json: ${{ secrets.GCP_SA_KEY }}
  
-      - name: Set up kubectl
-        uses: google-github-actions/get-gke-credentials@v2
-        with:
-          cluster_name: ${{ secrets.GKE_CLUSTER }}
-          location: ${{ secrets.GKE_ZONE }}
-          project_id: ${{ secrets.GCP_PROJECT }}
+      # - name: Set up kubectl
+      #   uses: google-github-actions/get-gke-credentials@v2
+      #   with:
+      #     cluster_name: ${{ secrets.GKE_CLUSTER }}
+      #     location: ${{ secrets.GKE_ZONE }}
+      #     project_id: ${{ secrets.GCP_PROJECT }}
  
-      # 🔐 Create GHCR secret in GKE
-      - name: Create GHCR imagePullSecret in GKE
-        run: |
-          kubectl delete secret ghcr-secret --ignore-not-found
-          kubectl create secret docker-registry ghcr-secret \
-            --docker-server=ghcr.io \
-            --docker-username=${{ github.actor }} \
-            --docker-password=${{ secrets.MY_GITHUB_TOKEN }} \
-            --docker-email=no@email.com
+      # # 🔐 Create GHCR secret in GKE
+      # - name: Create GHCR imagePullSecret in GKE
+      #   run: |
+      #     kubectl delete secret ghcr-secret --ignore-not-found
+      #     kubectl create secret docker-registry ghcr-secret \
+      #       --docker-server=ghcr.io \
+      #       --docker-username=${{ github.actor }} \
+      #       --docker-password=${{ secrets.MY_GITHUB_TOKEN }} \
+      #       --docker-email=no@email.com
 
-      # 🛠️ Patch the deployment YAML to include imagePullSecrets (optional if it's already in YAML)
-      - name: Patch deployment to use imagePullSecret
-        run: |
-          kubectl patch deployment react-app \
-            --patch '{"spec": {"template": {"spec": {"imagePullSecrets": [{"name": "ghcr-secret"}]}}}}'
+      # # 🛠️ Patch the deployment YAML to include imagePullSecrets (optional if it's already in YAML)
+      # - name: Patch deployment to use imagePullSecret
+      #   run: |
+      #     kubectl patch deployment react-app \
+      #       --patch '{"spec": {"template": {"spec": {"imagePullSecrets": [{"name": "ghcr-secret"}]}}}}'
 
-      # 🚀 Deploy to GKE
-      - name: Deploy to GKE
-        run: |
-          kubectl apply -f deployment.yaml
-          kubectl apply -f service.yaml
-          sleep 45
-          kubectl get pods -o wide
-          kubectl get svc -o wide
+      # # 🚀 Deploy to GKE
+      # - name: Deploy to GKE
+      #   run: |
+      #     kubectl apply -f deployment.yaml
+      #     kubectl apply -f service.yaml
+      #     sleep 45
+      #     kubectl get pods -o wide
+      #     kubectl get svc -o wide
   
