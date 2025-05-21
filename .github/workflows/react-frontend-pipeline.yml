@@ -246,12 +246,12 @@ jobs:
             username: ${{ secrets.DOCKER_USERNAME }}
             password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Copy artifact zip into current directory
-        run: |
-          curl -L -o frontend-artifact-latest.zip https://github.com/felix-murugan/artifact-repo/raw/main/frontend-artifact/frontend-artifact-latest.zip
+      # - name: Copy artifact zip into current directory
+      #   run: |
+      #     curl -L -o frontend-artifact-latest.zip https://github.com/felix-murugan/artifact-repo/raw/main/frontend-artifact/frontend-artifact-latest.zip
 
-      - name: Build Docker image
-        run: docker build -t cart-project .
+      # - name: Build Docker image
+      #   run: docker build -t cart-project .
 
          
       - name: Build and push Docker image
