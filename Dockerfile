@@ -18,5 +18,5 @@ WORKDIR /app/cart-project
 # Install dependencies and run app
 RUN npm install
 
-EXPOSE 3000
+EXPOSE 5173
 CMD ["npm", "run", "dev"]
