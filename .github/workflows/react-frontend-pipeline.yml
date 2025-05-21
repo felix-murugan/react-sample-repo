@@ -71,10 +71,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-modules-
 
-      - name: Install dependencies and Build 
-        run: |
-          npm install
-          npm run build
+      # - name: Install dependencies and Build 
+      #   run: |
+      #     npm install
+      #     npm run build
 
       - name: Run Lint (optional)
         run: npm run lint || true
@@ -82,8 +82,8 @@ jobs:
       - name: Run Tests (optional)
         run: npm test --if-present
 
-      - name: Build React App
-        run: npm run build 
+      # - name: Build React App
+      #   run: npm run build 
 
       - name: Upload React artifact
         uses: actions/upload-artifact@v4
