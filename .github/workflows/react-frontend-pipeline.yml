@@ -247,7 +247,7 @@ jobs:
             password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Copy artifact zip into current directory
-        run: cp artifact-repo/frontend-artifact-latest.zip .
+        run: cp react-artifact-repo/blob/main/frontend-artifact/frontend-artifact-latest.zip .
 
       - name: Build Docker image
         run: docker build -t cart-project .
