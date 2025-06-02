@@ -1,4 +1,3 @@
-
 name: React CI/CD - Feature to Development
 
 on:
@@ -12,7 +11,9 @@ permissions:
   pull-requests: write
 
 jobs:
-  check-merged:
+
+  Chechout-Source-Code:
+    name: Chechout Source Code
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true
     outputs:
@@ -21,35 +22,53 @@ jobs:
       - id: set_output
         run: echo "should_run=true" >> $GITHUB_OUTPUT
 
-  codeql-analysis:
-    name: Code Scanning
-    needs: check-merged
-    if: needs.check-merged.outputs.should_run == 'true'
+  # Scan-CodeQL:
+  #   name: Scan CodeQL
+  #   needs: Chechout-Source-Code
+  #   if: needs.Chechout-Source-Code.outputs.should_run == 'true'
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     actions: read
+  #     contents: read
+  #     security-events: write
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       language: [javascript]
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v3
+
+  #     - name: Initialize CodeQL
+  #       uses: github/codeql-action/init@v3
+  #       with:
+  #         languages: ${{ matrix.language }}
+
+  #     - name: Perform CodeQL Analysis
+  #       uses: github/codeql-action/analyze@v3
+
+  Unit-Testing:
+    name: Unit Testing
+    needs: Chechout-Source-Code
+    # if: needs.Scan-CodeQL.outputs.should_run == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [javascript]
+    defaults:
+      run:
+        working-directory: ./cart-project
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3  
+        
+      - name: Run Lint 
+        run: npm run lint || true
 
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: ${{ matrix.language }}
+      - name: Run Tests 
+        run: npm test --if-present
 
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
 
-  testing:
-    name: Test React App
-    needs: codeql-analysis
-    if: needs.check-merged.outputs.should_run == 'true'
+  Build:
+    name: Build 
+    needs: Unit-Testing
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -57,12 +76,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
+  
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-
+  
       - name: Cache Node modules
         uses: actions/cache@v3
         with:
@@ -70,52 +89,47 @@ jobs:
           key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-modules-
-
-      - name: Install dependencies and Build 
-        run: |
-          npm install
-          npm run build
-
-      - name: Run Lint (optional)
-        run: npm run lint || true
-
-      - name: Run Tests (optional)
-        run: npm test --if-present
-
+  
+      - name: Install dependencies
+        run: npm install
+  
       - name: Build React App
-        run: npm run build 
-
+        run: npm run build
+  
       - name: Upload React artifact
         uses: actions/upload-artifact@v4
         with:
           name: React-Artifact-code
           path: ./
 
-  zip-and-push-react-artifact:
-    needs: testing
+              
+
+  Packaging-and-Publishing-into-Artifact:
+    name: Packaging and Publishing into Artifact
+    needs: Build
     if: success()
     runs-on: ubuntu-latest
     steps:
       - name: Checkout target repo
         uses: actions/checkout@v3
         with:
-          repository: felix-murugan/react-artifact-repo 
+          repository: felix-murugan/react-artifact-repo
+
           ref: main
           token: ${{ secrets.My_GITHUB_TOKEN }}
           path: react-artifact-repo
+
           
       - run: mkdir -p react-artifact-repo/frontend-artifact
      
-
       - name: Check for existing latest version hash
         id: skip-check
         run: |
-          cd react-artifact-repo/frontend-artifact    
+          cd react-artifact-repo/frontend-artifact  
           latest_file=$(ls frontend-artifact-v*.zip 2>/dev/null | sort -V | tail -n 1)
           if [[ -f "$latest_file" ]]; then
             unzip -p "$latest_file" | sha256sum | cut -d' ' -f1 > ../latest_hash.txt
           else
-            
             echo "no_previous_hash" > ../latest_hash.txt
           fi
 
@@ -150,7 +164,6 @@ jobs:
         run: |
           cd react-artifact-repo/frontend-artifact
           count=$(ls frontend-artifact-v*.zip 2>/dev/null | wc -l)
-          
           echo "version=v$((count + 1))" >> $GITHUB_OUTPUT
 
       - name: Rename and move artifact
@@ -158,9 +171,7 @@ jobs:
         run: |
           VERSION=${{ steps.version.outputs.version }}
           mv React-Artifact-code/react-temp.zip react-artifact-repo/frontend-artifact/frontend-artifact-${VERSION}.zip
-          cp "react-artifact-repo/frontend-artifact/frontend-artifact-${VERSION}.zip" \
-             react-artifact-repo/frontend-artifact/frontend-artifact-latest.zip
-
+          cp react-artifact-repo/frontend-artifact/frontend-artifact-${VERSION}.zip react-artifact-repo/frontend-artifact/frontend-artifact-latest.zip
 
       - name: Commit and push ZIP to development branch
         if: steps.hash-diff.outputs.no_change == 'false'
@@ -172,61 +183,136 @@ jobs:
           git commit -m "Add frontend-artifact ${{ steps.version.outputs.version }}"
           git push origin main
 
-
-  create-pr:
-    needs: zip-and-push-react-artifact
-    if: success()
+  create-pr-master-to-develop:
+    needs: Packaging-and-Publishing-into-Artifact
     runs-on: ubuntu-latest
+    outputs:
+      pr_url: ${{ steps.create_pr.outputs.pr_url }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Create Pull Request from development to main
+        id: create_pr
         uses: repo-sync/pull-request@v2
         with:
           source_branch: development
           destination_branch: main
           pr_title: "Auto PR: development to main"
           pr_body: |
-            This PR was automatically created from the development branch to the main branch.
+            This PR was created from the development to main branch.
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
 
+      - name: Wait for PR Merge
+        run: |
+          while true; do
+            STATE=$(gh pr view "$PR_NUMBER" --repo felix-murugan/react-sample-repo --json state -q .state)
+            if [ "$STATE" = "MERGED" ]; then
+              echo "✅ PR #$PR_NUMBER has been merged!"
+              break
+            else
+              echo "Not merged yet. Waiting for approval..."
+              sleep 30
+            fi
+          done
+        env:
+          GH_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          
+  # Container-Build-and-Publish-into-Registry:
+  #   name: Container Build and Publish into Registry
+  #   needs: create-pr-master-to-develop
+  #   runs-on: ubuntu-latest
 
-  build-and-deploy:
-    name: Build and Deploy Docker Image
-    needs: create-pr
-    runs-on: ubuntu-latest
+  #   steps:
+
+  #     - name: Checkout main repository (kasadra-frontend-repo)
+  #       uses: actions/checkout@v3
+  #       with:
+  #         ref: main
+
+  #     - name: Checkout artifact repository
+  #       uses: actions/checkout@v3
+  #       with:
+  #         repository: SoftwareStackSolutions/Artifact_Storage
+  #         token: ${{ secrets.MY_GITHUB_TOKEN }}
+  #         path: Artifact_Storage
+
+      
+  #     - name: Prepare artifact for Docker build
+  #       run: |
+  #         cp Artifact_Storage/Frontend_Artifact/Frontend_Artifact-latest.zip ./artifact.zip
+          
+   
+  #     - name: Log in to GitHub Container Registry (GHCR)
+  #       uses: docker/login-action@v3
+  #       with:
+  #         registry: ghcr.io
+  #         username: ${{ github.actor }}
+  #         password: ${{ secrets.MY_GITHUB_TOKEN }}
+
+      
+  #     - name: Build Docker image
+  #       run: |
+  #         docker build -t react-app:latest -f Dockerfile . 
+            
+  #     - name: Tag image for GHCR
+  #       run: |
+  #         REPO_OWNER_LC=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
+  #         docker tag react-app:latest ghcr.io/${REPO_OWNER_LC}/react-app:latest
+      
+  #     - name: Push image to GHCR
+  #       run: |
+  #         REPO_OWNER_LC=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
+  #         docker push ghcr.io/${REPO_OWNER_LC}/react-app:latest
+
+
+
+
+  # Deploy-Application-to-GKE:
+  #   name: Deploy Application to GKE
+  #   needs: Container-Build-and-Publish-into-Registry
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout main repository
+  #       uses: actions/checkout@v3
+  #       with:
+  #         ref: main
+
   
-    steps:
-      # Checkout your current repository (the one with the Dockerfile)
-      - name: Checkout main repository
-        uses: actions/checkout@v3
-
-      # Clone the Artifact_Storage repository
-      - name: Checkout react-artifact-repo repository
-        uses: actions/checkout@v3
-        with:
-          repository: felix-murugan/react-artifact-repo
-          token: ${{ secrets.MY_GITHUB_TOKEN }}  # Or use a PAT if private
-          path: react-artifact-repo
-      # Set up Docker Buildx (required for docker/build-push-action)
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      # Log in to Docker Hub
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      # Build and push Docker image
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/react-app:latest
+  #     - name: Authenticate to GCP
+  #       uses: google-github-actions/auth@v2
+  #       with:
+  #         credentials_json: ${{ secrets.GCP_SA_KEY }}
   
+  #     - name: Set up kubectl
+  #       uses: google-github-actions/get-gke-credentials@v2
+  #       with:
+  #         cluster_name: ${{ secrets.GKE_CLUSTER }}
+  #         location: ${{ secrets.GKE_ZONE }}
+  #         project_id: ${{ secrets.GCP_PROJECT }}
+  
+  #     - name: Create GHCR imagePullSecret in GKE
+  #       run: |
+  #         kubectl delete secret ghcr-secret --ignore-not-found
+  #         kubectl create secret docker-registry ghcr-secret \
+  #           --docker-server=ghcr.io \
+  #           --docker-username=${{ github.actor }} \
+  #           --docker-password=${{ secrets.MY_GITHUB_TOKEN }} \
+  #           --docker-email=no@email.com
+  
+  #     - name: Deploy to GKE
+  #       run: |
+  #         kubectl apply -f deployment.yaml
+  #         kubectl apply -f service.yaml
+  #         sleep 59
+  
+  #     - name: Patch deployment to use imagePullSecret
+  #       run: |
+  #         kubectl patch deployment react-app \
+  #           --patch '{"spec": {"template": {"spec": {"imagePullSecrets": [{"name": "ghcr-secret"}]}}}}'
+  
+  #     - name: Verify Deployment
+  #       run: |
+  #         kubectl get pods -o wide
+  #         kubectl get svc -o wide
